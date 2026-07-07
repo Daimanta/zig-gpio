@@ -1,8 +1,9 @@
 const std = @import("std");
 const gpio = @import("gpio");
 
-pub fn main() !void {
-    var chip = try gpio.getChip("/dev/gpiochip2");
+pub fn main(init: std.process.Init) !void {
+    const io = init.io;
+    var chip = try gpio.getChip("/dev/gpiochip22", io);
     defer chip.close();
     try chip.setConsumer("blinky");
 
@@ -12,8 +13,8 @@ pub fn main() !void {
     defer line.close();
     while (true) {
         try line.setHigh();
-        std.time.sleep(std.time.ns_per_s);
+        io.sleep(.fromSeconds(1), .awake) catch {};
         try line.setLow();
-        std.time.sleep(std.time.ns_per_s);
+        io.sleep(.fromSeconds(1), .awake) catch {};
     }
 }

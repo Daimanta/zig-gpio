@@ -1,18 +1,16 @@
 const std = @import("std");
 const gpio = @import("gpio");
 
-pub fn main() !void {
-    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+pub fn main(init: std.process.Init) !void {
+    const io = init.io;
+    var gpa = std.heap.DebugAllocator(.{}){};
     defer std.debug.assert(gpa.deinit() == .ok);
     const alloc = gpa.allocator();
 
-    var args = try std.process.argsAlloc(alloc);
-    defer std.process.argsFree(alloc, args);
-
-    const stdout = std.io.getStdOut().writer();
+    var args = try init.minimal.args.toSlice(alloc);
 
     if (args.len < 3) {
-        try stdout.print("Usage: {s} <gpiochip> <line=value...>\n\n", .{args[0]});
+        gpio.print_utils.print("Usage: {s} <gpiochip> <line=value...>\n\n", .{args[0]});
         return error.InsufficientArguments;
     }
 
@@ -22,12 +20,15 @@ pub fn main() !void {
         try std.mem.concat(alloc, u8, &.{ "/dev/gpiochip", args[1] });
     defer alloc.free(path);
 
-    var chip = try gpio.getChip(path);
+    var chip = try gpio.getChip(path, io);
     defer chip.close();
     try chip.setConsumer("gpioset");
 
-    var values = std.AutoArrayHashMap(u32, bool).init(alloc);
-    defer values.deinit();
+    var keys: [128]u32 = undefined;
+    var bools: [128]bool = undefined;
+
+    var values = try std.array_hash_map.Auto(u32, bool).init(alloc, keys[0..], bools[0..]);
+    defer values.deinit(alloc);
 
     // Iterate over each argument starting from the second one
     for (args[2..args.len]) |argument| {
@@ -36,7 +37,7 @@ pub fn main() !void {
         // Parse each argument's offset and value, and add it to the values map
         const offset = try std.fmt.parseUnsigned(u32, argument[0..eqIndex], 10);
         const value = try std.fmt.parseUnsigned(u1, argument[eqIndex + 1 .. argument.len], 10);
-        try values.put(offset, value != 0);
+        try values.put(alloc, offset, value != 0);
     }
 
     var lines = try chip.requestLines(values.keys(), .{ .output = true });

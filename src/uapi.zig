@@ -33,7 +33,7 @@ pub const LineInfo = extern struct {
     /// The number of attributes in `attrs`
     num_attrs: u32,
     /// Configuration flags for this GPIO line
-    flags: LineFlags,
+    flags: u64,
     /// The configuration attributes associated with the line
     attrs: [MAX_LINE_NUM_ATTRS]LineAttribute,
     /// Reserved for future use
@@ -65,7 +65,7 @@ pub const LineAttribute = extern struct {
     id: LineAttributeId,
     _padding: u32 = 0,
     data: extern union {
-        flags: LineFlags,
+        flags: u64,
         values: u64,
         debounce_period_us: u32,
     },
@@ -84,7 +84,7 @@ pub const MAX_LINES = 64;
 pub const LineRequest = extern struct {
     offsets: [MAX_LINES]u32,
     consumer: [MAX_NAME_SIZE]u8,
-    config: LineConfig,
+    config: u64,
     num_lines: u32,
     event_buffer_size: u32,
     _padding: [5]u32 = [5]u32{ 0, 0, 0, 0, 0 },

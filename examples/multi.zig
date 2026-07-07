@@ -1,8 +1,9 @@
 const std = @import("std");
 const gpio = @import("gpio");
 
-pub fn main() !void {
-    var chip = try gpio.getChip("/dev/gpiochip0");
+pub fn main(init: std.process.Init) !void {
+    const io = init.io;
+    var chip = try gpio.getChip("/dev/gpiochip0", io);
     defer chip.close();
     try chip.setConsumer("multi");
 
@@ -17,11 +18,11 @@ pub fn main() !void {
         try lines.setLow(&.{ 1, 3 });
         // Set lines 26 and 28 as high (on)
         try lines.setHigh(&.{ 0, 2 });
-        std.time.sleep(std.time.ns_per_s);
+        io.sleep(.fromSeconds(1), .awake) catch {};
         // Set lines 26 and 28 as low (off)
         try lines.setLow(&.{ 0, 2 });
         // Set lines 27 and 28 as high (on)
         try lines.setHigh(&.{ 1, 3 });
-        std.time.sleep(std.time.ns_per_s);
+        io.sleep(.fromSeconds(1), .awake) catch {};
     }
 }

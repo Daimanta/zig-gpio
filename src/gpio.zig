@@ -2,8 +2,8 @@ const std = @import("std");
 const gpio = @import("index.zig");
 
 /// Opens the file at path and uses the file descriptor to get the gpiochip.
-pub fn getChip(path: []const u8) !Chip {
-    const fl = try std.fs.openFileAbsolute(path, .{});
+pub fn getChip(path: []const u8, io: std.Io) !Chip {
+    const fl = try std.Io.Dir.openFileAbsolute(io, path, .{});
     return try getChipByFd(fl.handle);
 }
 
@@ -83,7 +83,8 @@ pub const Chip = struct {
 
         var lr = std.mem.zeroes(gpio.uapi.LineRequest);
         lr.num_lines = @truncate(offsets.len);
-        lr.config.flags = flags;
+        const flags_int: u64 = @bitCast(flags);
+        lr.config = flags_int;
 
         if (self.consumer != null) {
             lr.consumer = self.consumer.?;
@@ -108,7 +109,7 @@ pub const Chip = struct {
     pub fn close(self: *Chip) void {
         if (self.closed) return;
         self.closed = true;
-        std.posix.close(self.handle);
+        _ = std.os.linux.close(self.handle);
     }
 };
 
@@ -254,7 +255,7 @@ pub const Lines = struct {
     pub fn close(self: *Lines) void {
         if (self.closed) return;
         self.closed = true;
-        std.posix.close(self.handle);
+        _ = std.os.linux.close(self.handle);
     }
 };
 
@@ -301,3 +302,4 @@ pub const Line = struct {
         self.lines.close();
     }
 };
+

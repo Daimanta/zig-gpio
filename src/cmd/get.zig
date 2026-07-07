@@ -1,18 +1,18 @@
 const std = @import("std");
 const gpio = @import("gpio");
 
-pub fn main() !void {
-    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+const print = gpio.print_utils.print;
+
+pub fn main(init: std.process.Init) !void {
+    const io = init.io;
+    var gpa = std.heap.DebugAllocator(.{}){};
     defer std.debug.assert(gpa.deinit() == .ok);
     const alloc = gpa.allocator();
 
-    var args = try std.process.argsAlloc(alloc);
-    defer std.process.argsFree(alloc, args);
-
-    const stdout = std.io.getStdOut().writer();
+    var args = try init.minimal.args.toSlice(alloc);
 
     if (args.len < 3) {
-        try stdout.print("Usage: {s} <gpiochip> <line...>\n\n", .{args[0]});
+        print("Usage: {s} <gpiochip> <line...>\n\n", .{args[0]});
         return error.InsufficientArguments;
     }
 
@@ -22,18 +22,18 @@ pub fn main() !void {
         try std.mem.concat(alloc, u8, &.{ "/dev/gpiochip", args[1] });
     defer alloc.free(path);
 
-    var chip = try gpio.getChip(path);
+    var chip = try gpio.getChip(path, io);
     defer chip.close();
     try chip.setConsumer("gpioget");
 
-    var offsets = std.ArrayList(u32).init(alloc);
-    defer offsets.deinit();
+    var offsets = try std.ArrayList(u32).initCapacity(alloc, 10);
+    defer offsets.deinit(alloc);
 
     // Iterate over each argument starting from the second one
     for (args[2..args.len]) |argument| {
         // Parse each argument as an integer and add it to offsets
         const offset = try std.fmt.parseUnsigned(u32, argument, 10);
-        try offsets.append(offset);
+        try offsets.append(alloc, offset);
     }
 
     var lines = try chip.requestLines(offsets.items, .{ .input = true });
@@ -43,10 +43,10 @@ pub fn main() !void {
     var i: u32 = 0;
     while (i < args.len - 2) : (i += 1) {
         const value: u1 = if (vals.isSet(i)) 1 else 0;
-        try stdout.print("{d} ", .{value});
+        print("{d} ", .{value});
     }
 
-    try stdout.writeByte('\n');
+    print("\n", .{});
 }
 
 fn hasPrefix(s: []const u8, prefix: []const u8) bool {

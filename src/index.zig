@@ -1,4 +1,5 @@
 pub const uapi = @import("uapi.zig");
+pub const print_utils = @import("print.zig");
 
 pub const getChip = @import("gpio.zig").getChip;
 pub const getChipZ = @import("gpio.zig").getChipZ;

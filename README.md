@@ -24,7 +24,8 @@ Here's an example of a really simple program that requests pin 22 from `gpiochip
 const std = @import("std");
 const gpio = @import("gpio");
 
-pub fn main() !void {
+pub fn main(init: std.process.Init) !void {
+    const io = init.io;
     var chip = try gpio.getChip("/dev/gpiochip2");
     defer chip.close();
     std.debug.print("Chip Name: {s}\n", .{chip.name});
@@ -33,9 +34,9 @@ pub fn main() !void {
     defer line.close();
     while (true) {
         try line.setHigh();
-        std.time.sleep(std.time.ns_per_s);
+        io.sleep(.fromSeconds(1), .awake) catch {};
         try line.setLow();
-        std.time.sleep(std.time.ns_per_s);
+        io.sleep(.fromSeconds(1), .awake) catch {};
     }
 }
 ```
