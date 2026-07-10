@@ -8,8 +8,8 @@ pub fn getChip(path: []const u8, io: std.Io) !Chip {
 }
 
 /// Same as `getChip` but the `path` parameter is null-terminated.
-pub fn getChipZ(path: [*:0]const u8) !Chip {
-    const fl = try std.fs.openFileAbsoluteZ(path, .{});
+pub fn getChipZ(path: [*:0]const u8, io: std.Io) !Chip {
+    const fl = try std.Io.Dir.openFileAbsolute(io, std.mem.span(path), .{});
     return try getChipByFd(fl.handle);
 }
 

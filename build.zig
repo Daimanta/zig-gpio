@@ -33,6 +33,13 @@ pub fn build(b: *std.Build) !void {
         .root_source_file = b.path("src/index.zig"),
         .target = target,
     });
+
+    const lib = b.addLibrary(.{
+        .linkage = .static,
+        .name = "zig_gpio",
+        .root_module = gpio_module
+    });
+    b.installArtifact(lib);
     // Add the gpio module so it can be used by the package manager
 
     // Create a step to build all the examples
