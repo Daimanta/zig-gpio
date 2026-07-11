@@ -1,6 +1,6 @@
 .{
     .name = .zig_gpio,
     .fingerprint = 0x721c37329abd281b,
-    .version = "0.1.2",
+    .version = "0.1.3",
     .paths = .{""},
 }

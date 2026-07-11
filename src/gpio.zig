@@ -83,8 +83,7 @@ pub const Chip = struct {
 
         var lr = std.mem.zeroes(gpio.uapi.LineRequest);
         lr.num_lines = @truncate(offsets.len);
-        const flags_int: u64 = @bitCast(flags);
-        lr.config = flags_int;
+        lr.config.flags = @bitCast(flags);
 
         if (self.consumer != null) {
             lr.consumer = self.consumer.?;

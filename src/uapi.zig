@@ -84,7 +84,7 @@ pub const MAX_LINES = 64;
 pub const LineRequest = extern struct {
     offsets: [MAX_LINES]u32,
     consumer: [MAX_NAME_SIZE]u8,
-    config: u64,
+    config: LineConfig,
     num_lines: u32,
     event_buffer_size: u32,
     _padding: [5]u32 = [5]u32{ 0, 0, 0, 0, 0 },
