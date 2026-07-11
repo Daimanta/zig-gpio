@@ -128,7 +128,7 @@ pub const LineConfig = extern struct {
     /// Configuration flags for the GPIO lines. This is the default for
     /// all requested lines but may be overridden for particular lines
     /// using `attrs`.
-    flags: LineFlags,
+    flags: u64,
     /// The number of attributes in `attrs`
     num_attrs: u32,
     /// Reserved for future use and must be zero-filled
