@@ -171,10 +171,11 @@ pub const Lines = struct {
     /// and `23` will correspond to `2`.
     pub fn reconfigure(self: Lines, indices: []const u32, flags: gpio.uapi.LineFlags) !void {
         var lc = std.mem.zeroes(gpio.uapi.LineConfig);
+        const flags_int: u64 = @bitCast(flags);
         lc.attrs[0] = gpio.uapi.LineConfigAttribute{
             .attr = .{
                 .id = .Flags,
-                .data = .{ .flags = flags },
+                .data = .{ .flags = flags_int },
             },
         };
 
